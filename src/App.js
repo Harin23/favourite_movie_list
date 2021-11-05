@@ -6,18 +6,25 @@ import '../node_modules/primeicons/primeicons.css'
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { classNames } from 'primereact/utils';
+import { MultiSelect } from 'primereact/multiselect';
 
 function App() {
   const [movieData, setMovieData] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [loadingTable, setLoadingTable] = useState(true);
+  const [uniqueDirectors, setUniqueDirectors] = useState([]);
 
   useEffect(()=>{
     fetch('https://skyit-coding-challenge.herokuapp.com/movies')
     .then(res=>{
       return res.json();
     })
-    .then(res=>{ setLoadingTable(false); setMovieData(res);})
+    .then(res=>{ 
+      // console.log(res); 
+      setLoadingTable(false); 
+      setMovieData(res);
+      setUniqueDirectors(res.map(row=>row.director).filter((director, index, selfArr)=>selfArr.indexOf(director)===index).map(director=>{return {'name': director}}));
+    })
     .catch(err=>{console.log(err)})
   }, [])
 
@@ -39,10 +46,21 @@ function App() {
     console.log(val, ((Math.round((val/5)*10000)/100).toFixed(2)+'%'), filter)
     return ((Math.round((val/5)*10000)/100).toFixed(2)+'%').startsWith(filter)!==false ? true:false;
   }
+
+  let directorsListTemplate=(option)=>{
+    return (
+      <div className="p-multiselect-representative-option">
+        {option.name}
+      </div>
+    );
+}
+
+  let directorColFilterTemplate=(options)=>{
+    return <MultiSelect value={options.value} options={uniqueDirectors} itemTemplate={directorsListTemplate} onChange={(e) => options.filterApplyCallback(e.value)} optionLabel="name" placeholder="Any" className="p-column-filter" maxSelectedLabels={1} />;
+  }
   
   return (
     <div className="App">
-      {/* {console.log(movieData)} */}
         <DataTable value={movieData}
          dataKey='_id' 
          header='Favourite Movie List'
@@ -62,8 +80,8 @@ function App() {
             <Column field={'title'} header={'Title'} body={(row)=>row.title} filter filterPlaceholder='search by title' showClearButton={false} showFilterMenu={false}/>
             <Column field={'releaseDate'} header={'Year'} body={(row)=>row.releaseDate} filter filterPlaceholder='search by year' showClearButton={false} showFilterMenu={false}/>
             <Column field={'length'} header={'Running Time'} body={(row)=>row.length} filter filterPlaceholder='search by time' showClearButton={false} showFilterMenu={false}/>
-            <Column field={'director'} header={'Director'} body={(row)=>row.director} filter filterPlaceholder/>
-            <Column field={'certification'} header={'Certification'} body={certificationBodyTemplate} filter filterPlaceholder/>
+            <Column filterField={'director'} header={'Director'} body={(row)=>row.director} filter filterElement={directorColFilterTemplate} showClearButton={false} showFilterMenu={false} />
+            <Column field={'certification'} header={'Certification'} body={certificationBodyTemplate} filter showClearButton={false} showFilterMenu={false} />
             <Column field={'rating'} header={'Rating'} body={(row)=>(Math.round((row.rating/5)*10000)/100).toFixed(2)+'%'} filter filterPlaceholder='search by rating' showClearButton={false} showFilterMenu={false} filterMatchMode="custom" filterFunction={filterFunc}/>
         </DataTable>
     </div>
