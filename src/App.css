@@ -27,12 +27,15 @@
 .App-link {
   color: #61dafb;
 }
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+tbody>tr>td>span.p-column-title{
+  visibility: hidden;
 }
+.p-datatable .p-datatable-odd.p-state-hover{
+  background: #F4E7C1 ;
+  
+  }
+  
+  .p-datatable .p-datatable-even.p-state-hover{
+  background: #F4E7C1 ;
+  
+  }
