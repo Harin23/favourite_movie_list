@@ -10,13 +10,14 @@ import { classNames } from 'primereact/utils';
 function App() {
   const [movieData, setMovieData] = useState(null);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [loadingTable, setLoadingTable] = useState(true);
 
   useEffect(()=>{
     fetch('https://skyit-coding-challenge.herokuapp.com/movies')
     .then(res=>{
       return res.json();
     })
-    .then(res=>{ setMovieData(res);})
+    .then(res=>{ setLoadingTable(false); setMovieData(res);})
     .catch(err=>{console.log(err)})
   }, [])
 
@@ -33,6 +34,12 @@ function App() {
         </span>
     );
   }
+
+  let filterFunc=(val, filter)=>{
+    console.log(val, ((Math.round((val/5)*10000)/100).toFixed(2)+'%'), filter)
+    return ((Math.round((val/5)*10000)/100).toFixed(2)+'%').startsWith(filter)!==false ? true:false;
+  }
+  
   return (
     <div className="App">
       {/* {console.log(movieData)} */}
@@ -46,14 +53,18 @@ function App() {
          onRowSelect={()=>{console.log(selectedMovie)}}
          paginator={true}
          rows={10}
+         globalFilterFields={['title', 'releaseDate', 'length', 'rating']}
+         filterDisplay='row'
+         loading={loadingTable}
+ 
         >
-            <Column selectionMode="single" headerStyle={{width: '3em'}} />
-            <Column field={'title'} header={'Title'} body={(row)=>row.title} />
-            <Column field={'releaseDate'} header={'Year'} body={(row)=>row.releaseDate} />
-            <Column field={'length'} header={'Running Time'} body={(row)=>row.length} />
-            <Column field={'director'} header={'Director'} body={(row)=>row.director} />
-            <Column field={'certification'} header={'Certification'} body={certificationBodyTemplate} />
-            <Column field={'rating'} header={'Rating'} body={(row)=>(Math.round((row.rating/5)*10000)/100).toFixed(2).toString()+'%'} />
+            <Column selectionMode="single" headerStyle={{width: '3em'}}/>
+            <Column field={'title'} header={'Title'} body={(row)=>row.title} filter filterPlaceholder='search by title' showClearButton={false} showFilterMenu={false}/>
+            <Column field={'releaseDate'} header={'Year'} body={(row)=>row.releaseDate} filter filterPlaceholder='search by year' showClearButton={false} showFilterMenu={false}/>
+            <Column field={'length'} header={'Running Time'} body={(row)=>row.length} filter filterPlaceholder='search by time' showClearButton={false} showFilterMenu={false}/>
+            <Column field={'director'} header={'Director'} body={(row)=>row.director} filter filterPlaceholder/>
+            <Column field={'certification'} header={'Certification'} body={certificationBodyTemplate} filter filterPlaceholder/>
+            <Column field={'rating'} header={'Rating'} body={(row)=>(Math.round((row.rating/5)*10000)/100).toFixed(2)+'%'} filter filterPlaceholder='search by rating' showClearButton={false} showFilterMenu={false} filterMatchMode="custom" filterFunction={filterFunc}/>
         </DataTable>
     </div>
   );
