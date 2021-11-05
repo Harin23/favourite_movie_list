@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
-// import "../node_modules/primereact/resources/themes/saga-blue/theme.css";
-// import "../node_modules/primereact/resources/primereact.min.css";
-// import "../node_modules/primeicons/primeicons.css";
 import "primeicons/primeicons.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.css";
@@ -12,6 +9,8 @@ import { Column } from "primereact/column";
 import { classNames } from "primereact/utils";
 import { MultiSelect } from "primereact/multiselect";
 import { Dropdown } from "primereact/dropdown";
+import { Sidebar } from "primereact/sidebar";
+import { Chip } from 'primereact/chip';
 
 function App() {
   const [movieData, setMovieData] = useState(null);
@@ -20,15 +19,8 @@ function App() {
   const [uniqueDirectors, setUniqueDirectors] = useState([]);
   const [selectedDirectors, setSelectedDirectors] = useState(null);
   const [selectedCertifications, setSelectedCertifications] = useState(null);
+  const [infoVisible, setInfoVisible] = useState(false);
   const myRef = useRef(null);
-  // const [tableFilters, setTableFilters] = useState({
-  //   'title': { value: null, matchMode: 'startsWith' },
-  //   'releaseDate': { value: null, matchMode: 'startsWith'},
-  //   'date': { value: null, matchMode: 'startsWith'},
-  //   'representative': { value: null, matchMode: 'in' },
-  //   'balance': { value: null, matchMode: 'equals' },
-  //   'status': { value: null, matchMode: 'startsWith'},
-  // })
 
   useEffect(() => {
     fetch("https://skyit-coding-challenge.herokuapp.com/movies")
@@ -36,7 +28,7 @@ function App() {
         return res.json();
       })
       .then((res) => {
-        // console.log(res);
+        console.log(res);
         setLoadingTable(false);
         setMovieData(
           res.map((row) => {
@@ -86,7 +78,7 @@ function App() {
           myRef.current.filter(e.value, 'director', 'in');
           setSelectedDirectors(e.value);
         }}
-        placeholder="Any"
+        placeholder="All"
         className="p-column-filter"
       />
     );
@@ -123,7 +115,7 @@ function App() {
           myRef.current.filter(e.value, 'certification', 'equals');
           setSelectedCertifications(e.value);
         }}
-        placeholder="Any"
+        placeholder="select a status"
         className="p-column-filter"
       />
     );
@@ -131,6 +123,19 @@ function App() {
 
   return (
     <div className="App">
+      <Sidebar className='movie-details-sidebar' visible={infoVisible} position="right" style={{width:'30em'}} onHide={() =>{setInfoVisible(false); }}>
+        <div className="movie-details-container">
+          <div className="movie-title">{selectedMovie && selectedMovie.title}</div>
+          <div className="movie-director">Directed By {selectedMovie && selectedMovie.director}</div>
+          <div className="movie-cast"><span className='movie-details-label p-sidebar-left'>Cast:</span> {selectedMovie && selectedMovie.cast.map((member, i)=> <Chip key={i} style={{'margin': '4px'}} label={member} />)}</div>
+          <div className="movie-genre"><span className='movie-details-label p-sidebar-left'>Genre:</span> {selectedMovie && selectedMovie.genre.map((gen, i)=> <Chip key={i} style={{'margin': '4px'}} label={gen} />)}</div>
+          <div className="movie-plot"><span className='movie-details-label p-sidebar-left'>Plot:</span><br/>{selectedMovie && selectedMovie.plot}</div>
+        </div>
+        <div className="references">
+          <small>All movie data are from Wikipedia and IMDb.</small>
+        </div>
+        
+      </Sidebar>
       <DataTable
         ref={myRef}
         value={movieData}
@@ -138,15 +143,13 @@ function App() {
         header="Favourite Movie List"
         rowHover
         selection={selectedMovie}
-        selectionMode="radiobutton"
         onSelectionChange={(e) => setSelectedMovie(e.value)}
-        // onRowSelect={() => {
-        //   console.log(selectedMovie);
-        // }}
+        onRowSelect={() => {
+          setInfoVisible(true);
+        }}
         paginator={true}
         rows={10}
         filterDisplay="row"
-        // filters={tableFilters}
         loading={loadingTable}
       >
         <Column selectionMode="single" headerStyle={{ width: "3em" }} />
